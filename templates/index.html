@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CAPR Search — plain-language Q&amp;A over Civil Air Patrol regulations</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Ask CAP regulation questions in plain language; get an answer with the regulation cited. Free for CAP members. Public-domain content; verify current versions on capmembers.com.">
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://capr.freshskyai.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="CAPR Search — plain-language Q&amp;A over Civil Air Patrol regulations">
+  <meta property="og:description" content="Ask CAP regulation questions in plain language; get an answer with the regulation cited. Free for CAP members.">
+  <meta property="og:url" content="https://capr.freshskyai.com/">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📖%3C/text%3E%3C/svg%3E">
+  <style>
+    :root {
+      --fg:#0f172a; --bg:#f8fafc; --card:#fff; --accent:#1e3a8a; --accent-hover:#1e40af;
+      --gold:#fbbf24; --border:#e2e8f0; --muted:#475569; --good:#15803d; --warn:#b45309;
+    }
+    * { box-sizing:border-box; }
+    body { font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; background:var(--bg); color:var(--fg); margin:0; padding:0; line-height:1.55; }
+    .topbar { background:#0f172a; color:#f1f5f9; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; font-size:14px; border-bottom:3px solid var(--gold); }
+    .topbar a { color:var(--gold); text-decoration:none; font-weight:600; }
+    .topbar a:hover { text-decoration:underline; }
+    header { text-align:center; padding:36px 20px 20px; }
+    header h1 { margin:0; font-size:30px; letter-spacing:-0.01em; }
+    header .tag { display:inline-block; background:#dbeafe; color:var(--accent); font-size:12px; font-weight:700; padding:4px 10px; border-radius:99px; margin-bottom:10px; letter-spacing:0.05em; text-transform:uppercase; }
+    header p { color:var(--muted); max-width:680px; margin:14px auto 0; font-size:16px; }
+    main { max-width:780px; margin:0 auto; padding:14px 16px 80px; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:24px; margin-bottom:18px; box-shadow:0 1px 3px rgba(0,0,0,.04); }
+    .card h2 { margin:0 0 6px; font-size:19px; }
+    .card .sub { font-size:13.5px; color:var(--muted); margin-bottom:16px; }
+    label { display:block; font-weight:600; margin-bottom:8px; font-size:14px; }
+    textarea { width:100%; min-height:96px; padding:12px; border:1px solid var(--border); border-radius:10px; font:inherit; font-size:15px; resize:vertical; background:#fff; }
+    textarea:focus { outline:2px solid var(--accent); border-color:var(--accent); }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+    button { font:inherit; cursor:pointer; border-radius:10px; padding:11px 18px; font-weight:600; border:none; }
+    button.primary { background:var(--accent); color:#fff; padding:13px 22px; font-size:15px; }
+    button.primary:hover { background:var(--accent-hover); }
+    button.primary:disabled { opacity:.55; cursor:not-allowed; }
+    button.ghost { background:#fff; color:var(--fg); border:1px solid var(--border); }
+    button.ghost:hover { background:#f8fafc; }
+    .suggestions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+    .suggestions button { font-size:13px; padding:7px 12px; background:#dbeafe; color:var(--accent); border:1px solid #bfdbfe; border-radius:99px; }
+    .suggestions button:hover { background:#bfdbfe; }
+    .hint { font-size:12.5px; color:var(--muted); margin-top:8px; }
+    .error { color:#991b1b; background:#fef2f2; padding:12px; border-radius:8px; margin-top:12px; display:none; border:1px solid #fecaca; }
+    .error.shown { display:block; }
+    .spin { display:inline-block; width:14px; height:14px; border:2px solid #fff; border-top-color:transparent; border-radius:50%; animation:s 0.8s linear infinite; margin-right:8px; vertical-align:-2px; }
+    @keyframes s { to { transform:rotate(360deg); } }
+
+    #out { display:none; }
+    #out.shown { display:block; }
+    .answer { background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:18px 20px; line-height:1.65; font-size:15.5px; }
+    .cite-row { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+    .pill { display:inline-flex; align-items:center; gap:6px; background:#0f172a; color:var(--gold); font-size:13px; padding:6px 12px; border-radius:99px; font-weight:600; }
+    .pill.section { background:#1e3a8a; color:#fff; }
+    .pill.confidence { padding:6px 12px; }
+    .pill.confidence.high { background:#dcfce7; color:#15803d; }
+    .pill.confidence.medium { background:#fef3c7; color:#92400e; }
+    .pill.confidence.low { background:#fee2e2; color:#991b1b; }
+    .secondary { margin-top:14px; font-size:14px; color:var(--muted); }
+    .secondary strong { color:var(--fg); }
+    .caveats { background:#fef3c7; border:1px solid #fcd34d; border-radius:8px; padding:12px 14px; margin-top:14px; font-size:14px; color:#78350f; }
+    .caveats strong { display:block; margin-bottom:6px; color:#92400e; }
+    .caveats ul { margin:0; padding-left:20px; }
+    .verify { margin-top:18px; padding:12px 14px; background:#f1f5f9; border-radius:8px; font-size:13.5px; color:var(--muted); text-align:center; }
+    .verify a { color:var(--accent); font-weight:600; }
+
+    .disclaimer { font-size:13px; color:var(--muted); padding:18px; max-width:680px; margin:8px auto; text-align:center; line-height:1.55; }
+    .disclaimer strong { color:var(--accent); }
+
+    footer { border-top:1px solid var(--border); margin-top:40px; padding:24px 20px; text-align:center; font-size:12.5px; color:var(--muted); line-height:1.7; }
+    footer a { color:#475569; text-decoration:underline; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <span><strong>📖 CAPR Search</strong> &middot; Free for CAP members</span>
+    <a href="https://cap.freshskyai.com/" target="_blank" rel="noopener">More CAP tools →</a>
+  </div>
+
+  <header>
+    <span class="tag">Plain-language Q&amp;A over CAPRs &amp; CAPPs</span>
+    <h1>Stop skimming 200-page regulations.</h1>
+    <p>Ask a CAP regulation question in plain English; get an answer with the regulation cited. Public-domain content (CAPRs/CAPPs are openly published on capmembers.com). Always verify current versions before relying on the answer for compliance.</p>
+  </header>
+
+  <main>
+    <div class="card">
+      <h2>Ask a regulation question</h2>
+      <p class="sub">Senior member, cadet, squadron CC, training officer — anyone with a "what does the reg say?" question.</p>
+
+      <textarea id="question" placeholder="Example: What does CAPR 60-3 say about cadet supervision ratios? Or: How long is Cadet Protection certification valid? Or: Who can authorize wear of the BDU?"></textarea>
+      <div class="hint">⌘/Ctrl + Enter to submit · max 1500 chars</div>
+
+      <div class="suggestions">
+        <button type="button" data-q="How long is Cadet Protection (CPP) certification valid before it needs to be renewed?">CPP renewal interval</button>
+        <button type="button" data-q="What are the senior member grades and how are they earned?">Senior member grades</button>
+        <button type="button" data-q="What are the cadet supervision ratios per CAPR 52-10?">Cadet supervision ratios</button>
+        <button type="button" data-q="What's the difference between Mission Scanner, Mission Observer, and Mission Pilot qualifications?">MS / MO / MP differences</button>
+        <button type="button" data-q="What's required for Level 1 senior member professional development completion?">Level 1 completion</button>
+        <button type="button" data-q="Who can wear the corporate uniform vs. blues vs. BDU?">Uniform eligibility</button>
+      </div>
+
+      <div class="row" style="margin-top:18px;">
+        <button class="primary" id="askBtn" type="button">Ask</button>
+        <button class="ghost" id="clearBtn" type="button">Clear</button>
+      </div>
+
+      <div class="error" id="err"></div>
+    </div>
+
+    <div class="card" id="out" aria-live="polite">
+      <h2>Answer</h2>
+      <div id="answerBody"></div>
+    </div>
+  </main>
+
+  <div class="disclaimer">
+    <strong>Verify before relying.</strong> CAP regulations are updated periodically; this tool's training data may be slightly out of date.
+    Always check the current version at <a href="https://www.capmembers.com/forms_publications__regulations/" target="_blank" rel="noopener">capmembers.com</a> before applying any answer to a real compliance situation.
+  </div>
+
+  <footer>
+    <p>Built under the <a href="https://www.freshskyai.com/#hulec" target="_blank" rel="noopener">HULEC rule</a>. Part of <a href="https://cap.freshskyai.com/" target="_blank" rel="noopener">Fresh Sky AI for Civil Air Patrol</a> — free, volunteer-built, no contract.</p>
+    <p>Not affiliated with Civil Air Patrol, the U.S. Air Force, CAP NHQ, or any wing/region. CAPRs and CAPPs are public domain via CAP NHQ.</p>
+  </footer>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const question = $('question');
+  const askBtn = $('askBtn');
+  const err = $('err');
+  const out = $('out');
+  const answerBody = $('answerBody');
+
+  document.querySelectorAll('.suggestions button').forEach(b => {
+    b.onclick = () => { question.value = b.getAttribute('data-q'); question.focus(); };
+  });
+  $('clearBtn').onclick = () => { question.value = ''; out.classList.remove('shown'); err.classList.remove('shown'); question.focus(); };
+
+  function showErr(msg) { err.textContent = msg; err.classList.add('shown'); }
+  function clearErr() { err.classList.remove('shown'); }
+
+  async function ask() {
+    const q = (question.value || '').trim();
+    if (!q) { showErr('Type a regulation question first.'); return; }
+    clearErr();
+    out.classList.remove('shown');
+    askBtn.disabled = true;
+    askBtn.innerHTML = '<span class="spin"></span>Asking…';
+    try {
+      const r = await fetch('/api/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: q }),
+      });
+      const j = await r.json();
+      if (!r.ok) { showErr(j.error || 'Server error.'); return; }
+      render(j.result || {});
+      out.classList.add('shown');
+      out.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (e) {
+      showErr('Network error: ' + (e.message || e));
+    } finally {
+      askBtn.disabled = false;
+      askBtn.textContent = 'Ask';
+    }
+  }
+
+  askBtn.onclick = ask;
+  question.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); ask(); }
+  });
+
+  function render(r) {
+    const cite = [];
+    if (r.primary_reg) cite.push(`<span class="pill">📖 ${esc(r.primary_reg)}</span>`);
+    if (r.section_or_paragraph) cite.push(`<span class="pill section">${esc(r.section_or_paragraph)}</span>`);
+    const conf = (r.confidence || 'medium').toLowerCase();
+    cite.push(`<span class="pill confidence ${conf}">${conf} confidence</span>`);
+
+    let secondaryHtml = '';
+    if ((r.secondary_regs || []).length) {
+      secondaryHtml = `<div class="secondary"><strong>Also touches:</strong> ${(r.secondary_regs).map(esc).join(' · ')}</div>`;
+    }
+    let caveatHtml = '';
+    if ((r.key_caveats || []).length) {
+      caveatHtml = `<div class="caveats"><strong>Caveats &amp; related compliance</strong><ul>${(r.key_caveats).map(c => `<li>${esc(c)}</li>`).join('')}</ul></div>`;
+    }
+
+    answerBody.innerHTML = `
+      <div class="answer">${esc(r.answer || 'No answer.').replace(/\n/g, '<br>')}</div>
+      <div class="cite-row">${cite.join('')}</div>
+      ${secondaryHtml}
+      ${caveatHtml}
+      <div class="verify">⚠ Verify the current version: <a href="${esc(r.verify_url || 'https://www.capmembers.com/forms_publications__regulations/')}" target="_blank" rel="noopener">capmembers.com/forms_publications__regulations</a></div>
+    `;
+  }
+
+  function esc(s) {
+    if (s == null) return '';
+    return String(s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+})();
+</script>
+</body>
+</html>
