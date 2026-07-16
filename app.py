@@ -1,17 +1,12 @@
+"""Plain-language Q&A over a dated CAP NHQ publication-index snapshot.
+
+The model may summarize, but server-side validation permits only publication
+numbers present in the verified index below. Paragraph-level citations are
+withheld because the app does not retrieve authoritative full-text documents.
+No PII, member rosters, or eServices integration.
 """
-CAPR Search — plain-language Q&A over Civil Air Patrol regulations and pamphlets.
+from __future__ import annotations
 
-CAP members ask: "what does CAPR 60-3 say about cadet supervision?" or
-"how long is CPP good for?" — the app answers using its training-data
-knowledge + a curated index of active CAPRs/CAPPs, and cites the
-relevant regulation. Members verify against the current authoritative
-version at capmembers.com.
-
-Public-domain content (CAPRs/CAPPs are openly published on capmembers.com).
-No PII. No member rosters. No eServices integration.
-
-Built by a CAP member as a free volunteer offering.
-"""
 import collections
 import functools
 import json
@@ -90,76 +85,201 @@ def _llm(system: str, user: str) -> str:
     raise RuntimeError(f'All LLM providers failed: {last_err}')
 
 
-# Curated index of active CAPRs and CAPPs. Reg numbers occasionally change
-# during NHQ renumbering; the prompt directs users to verify the current
-# version on capmembers.com. The LLM uses its broader CAP training-data
-# knowledge to handle reg numbers not listed here.
+SOURCE_RETRIEVED = '2026-07-16'
+CAP_REGULATIONS_URL = (
+    'https://www.gocivilairpatrol.com/members/publications/'
+    'indexes-regulations-and-manuals-1700'
+)
+CAP_PAMPHLETS_URL = (
+    'https://www.gocivilairpatrol.com/members/publications/pamphlets-1702/'
+)
+
+
+def _publication(title: str, version: str, source_url: str = CAP_REGULATIONS_URL) -> dict:
+    return {
+        'title': title,
+        'version': version,
+        'source_url': source_url,
+        'retrieved': SOURCE_RETRIEVED,
+    }
+
+
+# Exact metadata transcribed from the official CAP NHQ public indexes on the
+# retrieval date above. This is intentionally finite: unlisted citations are
+# rejected server-side instead of being guessed from model training data.
 CAPR_INDEX = {
-    'CAPR 1-1': 'Civil Air Patrol Vision, Mission, Core Values, and History',
-    'CAPR 7-2': 'IT Acceptable Use, Data Stewardship, and Records',
-    'CAPR 11-3': 'Reporting Requirements (incidents, recurring submissions)',
-    'CAPR 20-1': 'Organization of Civil Air Patrol',
-    'CAPR 30-1': 'Senior Member Membership (eligibility, application, dues)',
-    'CAPR 30-2': 'Cadet Membership (ages 12 to under 21)',
-    'CAPR 31-1': 'Personnel Promotions (senior member grades)',
-    'CAPR 35-3': 'Membership Termination and Disciplinary Action',
-    'CAPR 36-1': 'Equal Opportunity and Anti-Discrimination',
-    'CAPR 39-1': 'CAP Uniform Manual (how to wear every uniform)',
-    'CAPR 39-2': 'CAP Awards (medals and ribbons authority)',
-    'CAPR 39-3': 'Award of CAP Medals, Ribbons, and Certificates (criteria, nomination, approval)',
-    'CAPR 50-15': 'Special Activities (national and regional cadet activities)',
-    'CAPR 50-17': 'Senior Member Professional Development Program (Levels 1 through 5)',
-    'CAPR 52-10': 'Cadet Protection Program (CPP) — child safety, training requirements (renews every 2 years)',
-    'CAPR 52-16': 'Cadet Program Management (achievements, ranks, promotions, attendance)',
-    'CAPR 60-1': 'Aviation Standardization and Evaluation (Form 5 checks)',
-    'CAPR 60-3': 'Emergency Services Training and Operational Missions (qualifications: GES, MS, MO, MP, MSA, MSO, IC, etc.)',
-    'CAPR 60-4': 'Search and Rescue and Disaster Relief Procedures',
-    'CAPR 62-1': 'Safety Program (squadron-level program management)',
-    'CAPR 62-2': 'Mishap Reporting, Review, and CAPF 78',
-    'CAPR 66-1': 'Aircraft Maintenance Management',
-    'CAPR 70-1': 'Aerospace Education Program',
-    'CAPR 77-1': 'Operation and Maintenance of CAP Vehicles',
-    'CAPR 110-1': 'Communications (radio operators, COMSEC, equipment)',
-    'CAPR 173-1': 'Financial Procedures (squadron and wing fiscal management)',
-    'CAPR 174-1': 'Property and Logistics Management',
-    'CAPP 1': 'Core Values pamphlet (training resource for the four core values)',
-    'CAPP 50-2': 'Leadership 2000 (senior member professional development guide)',
-    'CAPP 50-9': 'Senior Member Curriculum task lookup',
-    'CAPP 51-1': 'Cadet Leadership Lab activity guide',
-    'CAPP 60-50': 'Cadet Programs Management practical handbook',
-    'CAPP 60-31': 'Cadet Achievement curriculum (per-achievement study guide)',
-    'CAPP 70-1': 'Aerospace Education Excellence (AEX) program guide',
+    'CAPR 1-1': _publication('Ethics Policy', '15 Mar 2012'),
+    'CAPR 1-2': _publication('Publications Management', '7 Nov 2016'),
+    'CAPR 1-2(I)': _publication('Personally Identifiable Information', '3 Apr 2012'),
+    'CAPR 20-1': _publication('Inspector General Program', '30 Sep 2025'),
+    'CAPR 20-2': _publication('Complaint Resolution', '7 Nov 2025'),
+    'CAPR 20-3': _publication('Inspections and Compliance Analyses Implementation Guide', '18 May 2026'),
+    'CAPR 30-1': _publication('Organization of Civil Air Patrol', '13 Jan 2020; includes current ICLs'),
+    'CAPR 35-1': _publication('Assignment and Duty Status', '4 Jun 2015'),
+    'CAPR 35-3': _publication('Membership Termination', '27 Dec 2012'),
+    'CAPR 35-5': _publication('CAP Officer and NCO Appointments and Promotions', '22 Nov 2016'),
+    'CAPR 36-1': _publication('Civil Air Patrol Nondiscrimination Program', '14 May 2026'),
+    'CAPR 36-2': _publication('Complaints Under the Civil Air Patrol Nondiscrimination Policy', '14 May 2026'),
+    'CAPR 39-1': _publication('Civil Air Patrol Uniform Regulation', '3 Mar 2020; includes current ICLs'),
+    'CAPR 39-2': _publication('Civil Air Patrol Membership', '18 Aug 2025'),
+    'CAPR 39-3': _publication('Award of CAP Medals, Ribbons and Certificates', '28 Dec 2012'),
+    'CAPR 39-4': _publication('Operations Ratings, Awards and Badges', '21 Apr 2025'),
+    'CAPR 40-1': _publication('Civil Air Patrol Senior Member Education & Training Program', '24 May 2021'),
+    'CAPR 40-2': _publication('Testing Administration and Security', '1 Jan 2018'),
+    'CAPR 50-1': _publication('Aerospace Education Mission', '9 Nov 2020'),
+    'CAPR 60-1': _publication('Cadet Program Management', '18 Aug 2025'),
+    'CAPR 60-2': _publication('Cadet Protection Program', '18 Aug 2025'),
+    'CAPR 60-3': _publication('Cadets At School Program', '26 Oct 2021'),
+    'CAPR 60-3(I)': _publication('CAP Emergency Services Training and Operational Missions', '26 Dec 2012'),
+    'CAPR 60-5': _publication('Critical Incident Stress Management', '3 Nov 2006'),
+    'CAPR 60-6': _publication('CAP Counterdrug Operations', '26 Dec 2012'),
+    'CAPR 70-1': _publication('CAP Flight Management', '31 Mar 2020'),
+    'CAPR 70-4': _publication('CAP sUAS Flight Management', '9 Jan 2023'),
+    'CAPR 100-1': _publication('Radio Communications Management', '6 Apr 2016'),
+    'CAPR 100-3': _publication('Radiotelephone Operations', '6 Apr 2016'),
+    'CAPR 103-1': _publication('Payment for Mission Support', '17 Oct 2025'),
+    'CAPR 110-1': _publication('Civil Air Patrol History Program', '25 Jan 2021'),
+    'CAPR 120-1': _publication('Information Technology Security', '21 Sep 2022'),
+    'CAPR 130-2': _publication('Civil Air Patrol Aircraft Maintenance Management', '4 Oct 2021; includes current ICLs'),
+    'CAPR 132-1': _publication('CAP Vehicle Management', '29 May 2025; includes current ICLs'),
+    'CAPR 160-1': _publication('Civil Air Patrol Safety Program', '1 Nov 2019'),
+    'CAPR 160-2': _publication('Safety Reporting and Review', '28 Dec 2022'),
+    'CAPR 173-1': _publication('Financial Procedures and Accounting', '15 Nov 2012; includes current ICLs'),
+    'CAPR 174-1': _publication('Property Management and Accountability', '26 Dec 2012; includes current ICLs'),
+    'CAPR 190-1': _publication('Civil Air Patrol Public Affairs Program', '16 Nov 2016; includes current ICLs'),
+    'CAPP 40-35': _publication('Command Specialty Track Study Guide', '29 Jun 2026', CAP_PAMPHLETS_URL),
+    'CAPP 60-11': _publication('Cadet Programs Officer Handbook and Specialty Track Guide', 'Jun 2026', CAP_PAMPHLETS_URL),
+    'CAPP 70-1': _publication('Operations Officer Specialty Track Study Guide', '17 Oct 2025; supersedes CAPP 211', CAP_PAMPHLETS_URL),
+    'CAPP 70-3': _publication('Emergency Services Officer Specialty Track Study Guide', '17 Oct 2025', CAP_PAMPHLETS_URL),
+    'CAPP 200': _publication('Personnel Officer Specialty Track Study Guide', '30 Apr 2026', CAP_PAMPHLETS_URL),
 }
 
 
 def _format_index() -> str:
-    return '\n'.join(f'  {k}: {v}' for k, v in CAPR_INDEX.items())
+    return '\n'.join(
+        f"  {number}: {entry['title']} (version/date: {entry['version']})"
+        for number, entry in CAPR_INDEX.items()
+    )
 
 
 _CAPR_SYSTEM = (
-    "You are a Civil Air Patrol regulation Q&A assistant. CAP members ask plain-language questions "
-    "about CAP regulations (CAPRs) and pamphlets (CAPPs); you answer using your training-data knowledge "
-    "of CAP regulations, citing the specific reg + section number. Always include a verify-current-version reminder.\n\n"
+    "You are a Civil Air Patrol publication-index Q&A assistant. The authoritative material supplied "
+    "to you is INDEX METADATA ONLY: publication number, title, and version/date. You do not have the "
+    "current full text. Use the index to identify which current publication likely governs a topic, but "
+    "do not claim that training-data memory is current authority.\n\n"
     "Output a JSON object with these fields:\n"
     '{\n'
     '  "answer": "concise plain-language answer, 2-6 sentences",\n'
-    '  "primary_reg": "the main regulation cited (e.g., \'CAPR 60-3\')",\n'
-    '  "section_or_paragraph": "section number, paragraph, table, or attachment reference if known (e.g., \'§4.2\' or \'Table 4-1\') — null if uncertain",\n'
+    '  "primary_reg": "the main publication cited (e.g., \'CAPR 60-2\')",\n'
+    '  "section_or_paragraph": null,\n'
     '  "secondary_regs": ["array of other CAPRs/CAPPs that also touch this topic"],\n'
     '  "key_caveats": ["array of important caveats, exceptions, or related compliance notes"],\n'
     '  "confidence": "high | medium | low — your confidence in this answer being current and accurate",\n'
-    '  "verify_url": "https://www.capmembers.com/forms_publications__regulations/"\n'
+    f'  "verify_url": "{CAP_REGULATIONS_URL}"\n'
     '}\n\n'
     "RULES:\n"
     "- Output ONLY the JSON object. No prose around it.\n"
     "- If the question is outside CAP scope (general aviation, USAF active-duty issues unrelated to CAP, personal legal advice), set confidence to 'low' and explain in 'answer' that the user should consult the appropriate authority.\n"
-    "- If you don't know which reg covers something, set primary_reg to null and confidence to 'low'. Do NOT invent reg numbers.\n"
-    "- CAP renumbers regulations periodically. Always include verify_url and recommend the user verify the current version at capmembers.com.\n"
-    "- For sensitive topics (Cadet Protection allegations, financial irregularities, mishap reporting): answer the procedural question but flag in key_caveats that the user should engage the proper chain of command (squadron CC -> Wing IG/JA/Safety) immediately.\n"
+    "- primary_reg and secondary_regs may contain ONLY exact publication numbers from the supplied index.\n"
+    "- Always set section_or_paragraph to null. The index does not support paragraph-level citations.\n"
+    "- If the question asks for a ratio, interval, permission, exception, procedure, exact requirement, "
+    "or other substantive rule that cannot be verified from the index metadata alone, say so plainly, "
+    "give only a source-finding lead, and use low confidence.\n"
+    "- If you do not know which indexed publication covers something, set primary_reg to null and "
+    "confidence to low. Never invent or modernize a number from memory.\n"
+    "- Always include the supplied verify_url and tell the user to open the current official document.\n"
+    "- For sensitive topics (Cadet Protection allegations, financial irregularities, mishap reporting): do not invent procedural steps from memory. Direct the user to the current publication and the responsible command/IG/JA/Safety channel.\n"
     "- Never give legal, medical, or aviation safety-of-flight advice. Cite the reg and recommend the appropriate authority.\n\n"
-    "ACTIVE CAP REGULATIONS AND PAMPHLETS (curated index — use general training knowledge for others):\n"
+    "CURRENT CAP PUBLICATION INDEX SNAPSHOT (official CAP NHQ indexes, retrieved 2026-07-16):\n"
     + _format_index()
 )
+
+
+def _validated_publication(value) -> str | None:
+    """Return an exact indexed publication number or refuse the citation."""
+    if not isinstance(value, str):
+        return None
+    candidate = re.sub(r'\s+', ' ', value.strip()).upper()
+    candidate = re.sub(r'\s+\(I\)$', '(I)', candidate)
+    for number in CAPR_INDEX:
+        if candidate == number.upper():
+            return number
+    return None
+
+
+def _normalize_result(parsed) -> dict:
+    """Attach trusted metadata and remove unsupported model citations."""
+    if not isinstance(parsed, dict):
+        parsed = {}
+
+    answer = parsed.get('answer')
+    if not isinstance(answer, str) or not answer.strip():
+        answer = 'No supported answer was returned.'
+    else:
+        answer = answer.strip()
+
+    primary = _validated_publication(parsed.get('primary_reg'))
+    raw_secondary = parsed.get('secondary_regs')
+    secondary = []
+    if isinstance(raw_secondary, list):
+        for item in raw_secondary:
+            number = _validated_publication(item)
+            if number and number != primary and number not in secondary:
+                secondary.append(number)
+
+    raw_caveats = parsed.get('key_caveats')
+    caveats = [
+        item.strip() for item in raw_caveats
+        if isinstance(item, str) and item.strip()
+    ][:6] if isinstance(raw_caveats, list) else []
+
+    result = {
+        'answer': answer,
+        'primary_reg': primary,
+        # Full current publication text is not loaded, so model-supplied paragraph
+        # references are never presented as verified citations.
+        'section_or_paragraph': None,
+        'secondary_regs': secondary,
+        'key_caveats': caveats,
+        'confidence': 'low',
+        'citation_status': 'unsupported',
+        'source_title': None,
+        'source_version': None,
+        'source_url': CAP_REGULATIONS_URL,
+        'source_retrieved': SOURCE_RETRIEVED,
+        'verify_url': CAP_REGULATIONS_URL,
+    }
+
+    if primary is None:
+        result['secondary_regs'] = []
+        result['key_caveats'] = []
+        result['answer'] = (
+            "I can't support a current CAP publication citation for this answer from the "
+            "verified index snapshot. Open the official CAP NHQ publications library or "
+            "consult the responsible CAP office; do not rely on an uncited model answer."
+        )
+        result['key_caveats'].append(
+            'The model did not return an exact publication number present in the verified index.'
+        )
+        return result
+
+    source = CAPR_INDEX[primary]
+    result.update({
+        'source_title': source['title'],
+        'source_version': source['version'],
+        'source_url': source['source_url'],
+        'source_retrieved': source['retrieved'],
+        'citation_status': 'index-validated',
+        'verify_url': source['source_url'],
+        # Index validation confirms the publication identity, not the model's
+        # substantive summary. High confidence would imply full-text checking.
+        'confidence': 'medium' if parsed.get('confidence') in {'high', 'medium'} else 'low',
+    })
+    result['key_caveats'].append(
+        'Publication number, title, and version were validated against the CAP NHQ index; '
+        'the answer and any detailed rule were not checked against the full current document.'
+    )
+    return result
 
 
 def _strip_code_fence(s: str) -> str:
@@ -208,7 +328,7 @@ def ask():
     except json.JSONDecodeError:
         logger.warning('LLM returned non-JSON: %s', raw[:200])
         return jsonify(error='The model returned an unparseable response. Please try again.'), 502
-    return jsonify(result=parsed)
+    return jsonify(result=_normalize_result(parsed))
 
 
 _PRIVACY_HTML = """<!DOCTYPE html>
@@ -218,11 +338,11 @@ _PRIVACY_HTML = """<!DOCTYPE html>
 </head><body>
 <a href="/">← Back to CAPR Search</a>
 <h1>Privacy Policy — CAPR Search</h1>
-<p><em>Last updated 2026-05-07</em></p>
+<p><em>Last updated 2026-07-16</em></p>
 <h2>What we collect</h2>
 <p>CAPR Search is a stateless tool. We do <strong>not</strong> require accounts. We do <strong>not</strong> store the text or voice input you submit. We do <strong>not</strong> upload member rosters, patient data, or any personally identifying information.</p>
 <h2>What we send to AI providers</h2>
-<p>The text or voice transcript you submit is sent to one of several US/EU-jurisdiction LLM providers (Groq, Cerebras, Mistral, HuggingFace via Together, Sambanova, Cloudflare Workers AI, or Google Gemini) for processing. None of these providers train on inputs from our paid-tier API calls (Gemini's free tier may; we do not pass PII).</p>
+<p>The text or voice transcript you submit is sent through the configured restricted U.S. AI provider pool. Provider availability can change. The shared privacy layer rejects several common identifier patterns before provider calls, but automated screening is not a substitute for removing identifying information. Do not submit PII, member rosters, payment data, or sensitive operational details.</p>
 <h2>What gets logged</h2>
 <p>Standard request metadata (IP address, timestamp, response code) is logged by Google Cloud Run for operational purposes (debugging, abuse prevention) and rotated automatically per Google retention defaults. We do not associate logs with individual users.</p>
 <h2>Cookies</h2>

@@ -2,6 +2,6 @@
 
 Plain-language Q&A over Civil Air Patrol regulations and pamphlets. Live at <https://capr.freshskyai.com>.
 
-CAP members ask a question; the LLM answers using a curated index of active CAPRs/CAPPs + general training-data knowledge, citing the relevant regulation. Verify-current-version reminder always appears.
+CAP members ask a question; the model proposes a source lead, and the server accepts only exact publication numbers in a dated CAP NHQ public-index snapshot. It attaches the official index URL, publication title, version/date, and retrieval date. Unsupported citations are refused, and paragraph-level citations are withheld because the app does not retrieve the current full text.
 
-Standalone Flask app, no `freshsky_common` dependency. LLM auto-fallback chain (Groq → Cerebras → Gemini → Mistral → HuggingFace). No PII, no member data, no eServices integration.
+Flask app using the shared privacy-restricted `freshsky_common` LLM chain. No PII, no member data, and no eServices integration. The current official document remains authoritative.

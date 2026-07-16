@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <title>CAPR Search — plain-language Q&amp;A over Civil Air Patrol regulations</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Ask CAP regulation questions in plain language; get an answer with the regulation cited. Free for CAP members. Public-domain content; verify current versions on capmembers.com.">
+  <meta name="description" content="Ask CAP publication questions in plain language; get a source lead checked against a dated CAP NHQ publication-index snapshot. Always verify the current official document.">
   <meta name="robots" content="index,follow">
   <link rel="canonical" href="https://capr.freshskyai.com/">
   <meta property="og:type" content="website">
   <meta property="og:title" content="CAPR Search — plain-language Q&amp;A over Civil Air Patrol regulations">
-  <meta property="og:description" content="Ask CAP regulation questions in plain language; get an answer with the regulation cited. Free for CAP members.">
+  <meta property="og:description" content="Find a current CAP publication source lead checked against a dated CAP NHQ index snapshot. Always open the official document before relying on the answer.">
   <meta property="og:url" content="https://capr.freshskyai.com/">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📖%3C/text%3E%3C/svg%3E">
   <style>
@@ -61,6 +61,9 @@
     .pill.confidence.low { background:#fee2e2; color:#991b1b; }
     .secondary { margin-top:14px; font-size:14px; color:var(--muted); }
     .secondary strong { color:var(--fg); }
+    .source { margin-top:14px; padding:12px 14px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; font-size:13.5px; color:var(--muted); }
+    .source strong { color:var(--fg); }
+    .source a { color:var(--accent); font-weight:600; }
     .caveats { background:#fef3c7; border:1px solid #fcd34d; border-radius:8px; padding:12px 14px; margin-top:14px; font-size:14px; color:#78350f; }
     .caveats strong { display:block; margin-bottom:6px; color:#92400e; }
     .caveats ul { margin:0; padding-left:20px; }
@@ -136,8 +139,8 @@ a:hover{color:#c4b5fd}
 
   <header>
     <span class="tag">Plain-language Q&amp;A over CAPRs &amp; CAPPs</span>
-    <h1>Stop skimming 200-page regulations.</h1>
-    <p>Agentic AI parses 200+ pages of CAP regulations, finds your answer, and cites the regulation — frontier models on public-domain content (CAPRs/CAPPs are openly published on capmembers.com). Always verify current versions before relying on the answer for compliance.</p>
+    <h1>Find the right current CAP publication first.</h1>
+    <p>Ask which current CAP publication likely governs a topic. Publication numbers, titles, and version dates are checked against a CAP NHQ index snapshot retrieved July 16, 2026; detailed answers still require opening the current official document.</p>
   </header>
 
   <main>
@@ -145,16 +148,16 @@ a:hover{color:#c4b5fd}
       <h2>Ask a regulation question</h2>
       <p class="sub">Senior member, cadet, squadron CC, training officer — anyone with a "what does the reg say?" question.</p>
 
-      <textarea id="question" placeholder="Example: What does CAPR 60-3 say about cadet supervision ratios? Or: How long is Cadet Protection certification valid? Or: Who can authorize wear of the BDU?"></textarea>
+      <textarea id="question" placeholder="Example: Which current regulation governs the Cadet Protection Program? Or: Which publication covers CAP uniforms? Or: Where is the current emergency-services regulation listed?"></textarea>
       <div class="hint">⌘/Ctrl + Enter to submit · max 1500 chars</div>
 
       <div class="suggestions">
-        <button type="button" data-q="How long is Cadet Protection (CPP) certification valid before it needs to be renewed?">CPP renewal interval</button>
+        <button type="button" data-q="Which current regulation governs the Cadet Protection Program, and where can I open the official document?">Cadet Protection source</button>
         <button type="button" data-q="What are the senior member grades and how are they earned?">Senior member grades</button>
-        <button type="button" data-q="What are the cadet supervision ratios per CAPR 52-10?">Cadet supervision ratios</button>
+        <button type="button" data-q="Which current CAP publication should I open for cadet supervision requirements?">Cadet supervision source</button>
         <button type="button" data-q="What's the difference between Mission Scanner, Mission Observer, and Mission Pilot qualifications?">MS / MO / MP differences</button>
         <button type="button" data-q="What's required for Level 1 senior member professional development completion?">Level 1 completion</button>
-        <button type="button" data-q="Who can wear the corporate uniform vs. blues vs. BDU?">Uniform eligibility</button>
+        <button type="button" data-q="Which current publication governs CAP uniform eligibility and wear?">Uniform source</button>
       </div>
 
       <div class="row" style="margin-top:18px;">
@@ -172,13 +175,13 @@ a:hover{color:#c4b5fd}
   </main>
 
   <div class="disclaimer">
-    <strong>Verify before relying.</strong> CAP regulations are updated periodically; this tool's training data may be slightly out of date.
-    Always check the current version at <a href="https://www.capmembers.com/forms_publications__regulations/" target="_blank" rel="noopener">capmembers.com</a> before applying any answer to a real compliance situation.
+    <strong>Verify before relying.</strong> The server validates publication identity against a dated index, not the model's detailed answer against the full document.
+    Always open the current version in the <a href="https://www.gocivilairpatrol.com/members/publications/indexes-regulations-and-manuals-1700" target="_blank" rel="noopener">official CAP NHQ publications library</a> before applying an answer to a compliance situation.
   </div>
 
   <footer>
     <p>Built under the <a href="https://www.freshskyai.com/#hulec" target="_blank" rel="noopener">HULEC rule</a>. Part of <a href="https://cap.freshskyai.com/" target="_blank" rel="noopener">Fresh Sky AI for Civil Air Patrol</a> — free, volunteer-built, no contract.</p>
-    <p>Not affiliated with Civil Air Patrol, the U.S. Air Force, CAP NHQ, or any wing/region. CAPRs and CAPPs are public domain via CAP NHQ.</p>
+    <p>Not affiliated with Civil Air Patrol, the U.S. Air Force, CAP NHQ, or any wing/region. Uses publicly available CAP NHQ publication-index metadata.</p>
       <p style="margin-top:8px;font-size:11.5px;"><a href="/privacy" style="color:#94a3b8;text-decoration:underline;">Privacy</a> · <a href="/terms" style="color:#94a3b8;text-decoration:underline;">Terms</a> · <a href="https://www.freshskyai.com/contact" target="_blank" rel="noopener" style="color:#94a3b8;text-decoration:underline;">Contact</a></p>
   </footer>
 
@@ -241,6 +244,14 @@ a:hover{color:#c4b5fd}
     if ((r.secondary_regs || []).length) {
       secondaryHtml = `<div class="secondary"><strong>Also touches:</strong> ${(r.secondary_regs).map(esc).join(' · ')}</div>`;
     }
+    let sourceHtml = '';
+    if (r.citation_status === 'index-validated' && r.source_title) {
+      sourceHtml = `<div class="source"><strong>Index-validated publication identity:</strong> ${esc(r.primary_reg)} — ${esc(r.source_title)}<br>` +
+        `<strong>Version/date:</strong> ${esc(r.source_version || 'Not listed')} · <strong>Index retrieved:</strong> ${esc(r.source_retrieved || '')}<br>` +
+        `<a href="${esc(r.source_url)}" target="_blank" rel="noopener">Open the official CAP NHQ publication index ↗</a></div>`;
+    } else {
+      sourceHtml = `<div class="source"><strong>Unsupported citation:</strong> No exact current publication citation was accepted from the model. Use the official index link below.</div>`;
+    }
     let caveatHtml = '';
     if ((r.key_caveats || []).length) {
       caveatHtml = `<div class="caveats"><strong>Caveats &amp; related compliance</strong><ul>${(r.key_caveats).map(c => `<li>${esc(c)}</li>`).join('')}</ul></div>`;
@@ -250,8 +261,9 @@ a:hover{color:#c4b5fd}
       <div class="answer">${esc(r.answer || 'No answer.').replace(/\n/g, '<br>')}</div>
       <div class="cite-row">${cite.join('')}</div>
       ${secondaryHtml}
+      ${sourceHtml}
       ${caveatHtml}
-      <div class="verify">⚠ Verify the current version: <a href="${esc(r.verify_url || 'https://www.capmembers.com/forms_publications__regulations/')}" target="_blank" rel="noopener">capmembers.com/forms_publications__regulations</a></div>
+      <div class="verify">⚠ Verify the current full document: <a href="${esc(r.verify_url || 'https://www.gocivilairpatrol.com/members/publications/indexes-regulations-and-manuals-1700')}" target="_blank" rel="noopener">official CAP NHQ publications library</a></div>
     `;
   }
 
