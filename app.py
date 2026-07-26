@@ -36,6 +36,7 @@ register_freemium(
     primary_url=os.environ.get('APP_URL', 'https://capr.freshskyai.com'),
     community_mode=True,
     gate_all_post=True,
+    workspace_id='civic',
 )
 install_hulec(app, slug='capr')
 install_security_headers(app)
@@ -353,11 +354,11 @@ _PRIVACY_HTML = """<!DOCTYPE html>
 </head><body>
 <a href="/">← Back to CAPR Search</a>
 <h1>Privacy Policy — CAPR Search</h1>
-<p><em>Last updated 2026-07-16</em></p>
+<p><em>Last updated 2026-07-26</em></p>
 <h2>What we collect</h2>
-<p>CAPR Search is a stateless tool. We do <strong>not</strong> require accounts. We do <strong>not</strong> store the text or voice input you submit. We do <strong>not</strong> upload member rosters, patient data, or any personally identifying information.</p>
+<p>CAPR Search is a stateless tool. We do <strong>not</strong> store the text or voice input you submit. An email address is used only when you choose to sign in for paid access. CAPR Search does not accept or need member rosters, CAPIDs, patient health information (PHI), incident identifiers, or operational secrets.</p>
 <h2>What we send to AI providers</h2>
-<p>The text or voice transcript you submit is sent through the configured restricted U.S. AI provider pool. Provider availability can change. The shared privacy layer rejects several common identifier patterns before provider calls, but automated screening is not a substitute for removing identifying information. Do not submit PII, member rosters, payment data, or sensitive operational details.</p>
+<p>The text or voice transcript you submit is sent through the configured restricted U.S. AI provider pool. Provider availability can change. The shared privacy layer rejects several common identifier patterns before provider calls, but automated screening is not a substitute for removing identifying information. <strong>Do not submit rosters, CAPIDs, PHI, incident identifiers, operational secrets, payment data, or other sensitive data.</strong></p>
 <h2>What gets logged</h2>
 <p>Standard request metadata (IP address, timestamp, response code) is logged by Google Cloud Run for operational purposes (debugging, abuse prevention) and rotated automatically per Google retention defaults. We do not associate logs with individual users.</p>
 <h2>Cookies</h2>
@@ -375,13 +376,13 @@ _TERMS_HTML = """<!DOCTYPE html>
 </head><body>
 <a href="/">← Back to CAPR Search</a>
 <h1>Terms of Use — CAPR Search</h1>
-<p><em>Last updated 2026-05-07</em></p>
+<p><em>Last updated 2026-07-26</em></p>
 <h2>What this is</h2>
-<p>CAPR Search is a paid, member-focused tool offered by Fresh Sky LLC for use by U.S. Civil Air Patrol members. Three previews are included; continued access is $29.99/month and may be canceled monthly.</p>
+<p>CAPR Search is an unofficial, experimental, privacy-first Civic module offered by Fresh Sky LLC. Three previews are included; Civic access is $14.99/month with an allowance of 40 usage units per day and 200 per month, and may be canceled monthly. Civic access covers CivicOps and CAP modules only; it does not grant access to non-Civic Fresh Sky products. Existing eligible subscriptions continue to be recognized.</p>
 <h2>What this is not</h2>
-<p>CAPR Search is <strong>not</strong> affiliated with any government agency, military service, or official entity. Output is AI-generated and intended as a draft or study aid only — the human user is responsible for verifying accuracy against authoritative current sources before acting on or filing anything.</p>
+<p>CAPR Search is <strong>not</strong> an official Civil Air Patrol publication search system and is not affiliated with or endorsed by Civil Air Patrol, any government agency, or any military service. Output is AI-generated and intended as a source lead only — the human user is responsible for opening and verifying the authoritative current publication before acting.</p>
 <h2>Use at your own discretion</h2>
-<p>You agree to use the tool in good faith. Do not submit personally identifying information (PII) about third parties, patient health information (PHI), or classified/sensitive operational details. The tool is not designed to handle such data and we do not warrant against any misuse.</p>
+<p>You agree to use the tool in good faith. <strong>Do not submit rosters, CAPIDs, personally identifying information (PII), patient health information (PHI), incident identifiers, operational secrets, or classified/sensitive operational details.</strong> The tool is not designed to handle such data and we do not warrant against any misuse.</p>
 <h2>No warranty</h2>
 <p>The tool is provided "as is" without warranty of any kind. Fresh Sky LLC disclaims all liability for damages arising from use or misuse of the output.</p>
 <h2>Changes</h2>

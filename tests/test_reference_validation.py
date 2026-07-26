@@ -2,7 +2,11 @@ import json
 import sys
 import types
 import unittest
+from pathlib import Path
 from unittest.mock import patch
+
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class _StubLLMChain:
@@ -108,6 +112,32 @@ class ReferenceValidationTests(unittest.TestCase):
         result = response.get_json()['result']
         self.assertIsNone(result['primary_reg'])
         self.assertEqual(result['citation_status'], 'unsupported')
+
+    def test_civic_access_and_sensitive_data_boundary_are_explicit(self):
+        app_source = (ROOT / 'app.py').read_text()
+        landing = (ROOT / 'templates/index.html').read_text()
+        requirements = (ROOT / 'requirements.txt').read_text()
+        workflow = (ROOT / '.github/workflows/deploy.yml').read_text()
+
+        self.assertIn("workspace_id='civic'", app_source)
+        self.assertIn('community_mode=True', app_source)
+        self.assertIn('gate_all_post=True', app_source)
+        self.assertIn('unofficial, experimental', landing.lower())
+        for boundary in (
+            'rosters', 'CAPIDs', 'PHI', 'incident identifiers',
+            'operational secrets',
+        ):
+            self.assertIn(boundary, landing)
+        self.assertIn('$14.99/month', landing)
+        self.assertIn('40 usage units/day', landing)
+        self.assertIn('200/month', landing)
+        self.assertIn('does not include non-Civic', landing)
+        self.assertIn(
+            '05fe2d0a11fd81ee82f16f6270fc061b0fc15b37',
+            requirements,
+        )
+        self.assertIn('FRESHSKY_WORKSPACE_ID=civic', workflow)
+        self.assertIn('FRESHSKY_SUBSCRIPTION_TIER=civic', workflow)
 
 
 if __name__ == '__main__':
