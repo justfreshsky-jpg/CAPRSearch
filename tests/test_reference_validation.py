@@ -133,7 +133,7 @@ class ReferenceValidationTests(unittest.TestCase):
         self.assertIn('200/month', landing)
         self.assertIn('does not include non-Civic', landing)
         self.assertIn(
-            '219f89f3c5e06c99981335952a1889edc169bb43',
+            'f6d78535e8a473fe64ca4b1e516cbbcad426799b',
             requirements,
         )
         self.assertIn('FRESHSKY_WORKSPACE_ID=civic', workflow)
