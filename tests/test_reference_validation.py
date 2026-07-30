@@ -31,6 +31,11 @@ import app as capr_app  # noqa: E402
 
 
 class ReferenceValidationTests(unittest.TestCase):
+    def test_publication_question_has_an_explicit_label(self):
+        body = capr_app.app.test_client().get('/').get_data(as_text=True)
+
+        self.assertIn('<label for="question">', body)
+
     def test_current_index_replaces_materially_wrong_mappings(self):
         index = capr_app.CAPR_INDEX
         self.assertEqual(index['CAPR 20-1']['title'], 'Inspector General Program')
