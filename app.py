@@ -377,7 +377,7 @@ _TERMS_HTML = """<!DOCTYPE html>
 <h1>Terms of Use — CAPR Search</h1>
 <p><em>Last updated 2026-05-07</em></p>
 <h2>What this is</h2>
-<p>CAPR Search is a paid, member-focused tool offered by Fresh Sky LLC for use by U.S. Civil Air Patrol members. Three previews are included; continued access is $29.99/month and may be canceled monthly.</p>
+<p>CAPR Search is a paid, member-focused tool offered by Fresh Sky LLC for use by U.S. Civil Air Patrol members. Three previews are included; continued Civic access is $14.99/month and may be canceled monthly. There are no automatic overage charges.</p>
 <h2>What this is not</h2>
 <p>CAPR Search is <strong>not</strong> affiliated with any government agency, military service, or official entity. Output is AI-generated and intended as a draft or study aid only — the human user is responsible for verifying accuracy against authoritative current sources before acting on or filing anything.</p>
 <h2>Use at your own discretion</h2>
