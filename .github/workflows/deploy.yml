@@ -1,14 +1,6 @@
 name: Deploy
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'app.py'
-      - 'requirements.txt'
-      - 'Dockerfile'
-      - 'templates/**'
-      - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
 permissions:
